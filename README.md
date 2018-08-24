@@ -17,5 +17,5 @@ activiti cloud 提供了支持整个平台的基本服务和仅限于BPM的服�
 -- Activiti Cloud Runtime Bundles  
 -- Activiti Cloud Connectors  
 定义了需要由基础框架提供的服务，这意味着在不同的环境中这些组件可以被其他的基础服务所替代。其他的组件需要依赖于这些服务来正常工作  
-![框架](activiti_demo/img/pic1.png) 
+![框架](img/pic1.png) 
 
