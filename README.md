@@ -1,5 +1,5 @@
-
-### 快速开始  
+## activiti  https://www.activiti.org/
+### 快速开始  https://www.activiti.org/quick-start
 $mvnProject 项目根目录  
 - 创建和启动一个Maven项目：$mvnProject/pom.xml   
 ```
@@ -78,10 +78,10 @@ public class OnboardingRequest {
 ```  
 - 发布一个流程定义  
 我们准备在Activiti引擎中发布一个BPM流程逻辑.当前示例里输入数据,如果数据大于3,会执行用户自定义的流程在后台进行数据的交互.如果数据小于或者等于3会在后台输出简单的信息。Activiti服从BPMN2.0规范。示例文件可以可视化展示为下图：  
+![流程图](img/2.png)
 
 
 
-## activiti cloud   https://activiti.gitbook.io/activiti-7-developers-guide/components-architecture/overview
 ### overview  
 activiti cloud 提供了支持整个平台的基本服务和仅限于BPM的服务，所有的服务之间可以进行解耦，你可以自由的重新整合或替代服务。  
 下列是已开发的服务：  
@@ -123,7 +123,9 @@ Activiti应用是由一系列需要被结合到一起的组件组成的。使用
 ### Configuration Service  
 分布式Log  Distributed Logging   
 - Spring Boot Kubernetes https://github.com/Activiti/example-runtime-bundle/blob/develop/src/main/resources/logback-spring.xml
-- json log https://github.com/logstash/logstash-logback-encoder  
+- json log https://github.com/logstash/logstash-logback-encoder    
+### 参考  
+- idea bpmn插件 https://www.cnblogs.com/kanyun/p/8079501.html
 
 
 
