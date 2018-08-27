@@ -1,3 +1,86 @@
+
+### 快速开始  
+$mvnProject 项目根目录  
+- 创建和启动一个Maven项目：$mvnProject/pom.xml   
+```
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>$quickStartJavaProjectName</groupId>
+  <artifactId>$quickStartJavaProjectName</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <!-- ... other configurations may exist, such as a build stanza, depending your environment ... -->
+
+  <dependencies>
+    <dependency>
+      <groupId>org.activiti</groupId>
+      <artifactId>activiti-engine</artifactId>
+      <version>$actVer</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.21</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.21</version>
+    </dependency>
+    <dependency>
+      <groupId>/groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.193</version>
+    </dependency>
+  </dependencies>
+</project>
+```
+$actVer替换为官方版本 当前示例的版本号为6.0.0  数据库换成mysql  
+```
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>6.0.6</version>
+    </dependency>
+ ```  
+ 
+- 创建流程引擎  
+添加log4j依赖 $mvnProject/src/main/resources/log4j.properties  
+```
+log4j.rootLogger=DEBUG, ACT
+
+log4j.appender.ACT=org.apache.log4j.ConsoleAppender
+log4j.appender.ACT.layout=org.apache.log4j.PatternLayout
+log4j.appender.ACT.layout.ConversionPattern= %d{hh:mm:ss,SSS} [%t] %-5p %c %x - %m%n  
+```  
+创建main方法  $mvnProject/src/main/java/com/example/OnboardingRequest.java  
+```  
+package com.example;
+
+import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.ProcessEngineConfiguration;
+import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
+
+public class OnboardingRequest {
+  public static void main(String[] args) {
+    ProcessEngineConfiguration cfg = new StandaloneProcessEngineConfiguration()
+      .setJdbcUrl("jdbc:mysql://localhost:3306/activiti?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC")
+      .setJdbcUsername("sa")
+      .setJdbcPassword("")
+      .setJdbcDriver("com.mysql.cj.jdbc.Driver")
+      .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
+    ProcessEngine processEngine = cfg.buildProcessEngine();
+    String pName = processEngine.getName();
+    String ver = ProcessEngine.VERSION;
+    System.out.println("ProcessEngine [" + pName + "] Version: [" + ver + "]");
+  }
+}
+```  
+- 发布一个流程定义  
+我们准备在Activiti引擎中发布一个BPM流程逻辑.当前示例里输入数据,如果数据大于3,会执行用户自定义的流程在后台进行数据的交互.如果数据小于或者等于3会在后台输出简单的信息。Activiti服从BPMN2.0规范。示例文件可以可视化展示为下图：  
+
+
+
 ## activiti cloud   https://activiti.gitbook.io/activiti-7-developers-guide/components-architecture/overview
 ### overview  
 activiti cloud 提供了支持整个平台的基本服务和仅限于BPM的服务，所有的服务之间可以进行解耦，你可以自由的重新整合或替代服务。  
@@ -41,8 +124,6 @@ Activiti应用是由一系列需要被结合到一起的组件组成的。使用
 分布式Log  Distributed Logging   
 - Spring Boot Kubernetes https://github.com/Activiti/example-runtime-bundle/blob/develop/src/main/resources/logback-spring.xml
 - json log https://github.com/logstash/logstash-logback-encoder  
-### 快速开始  
-- 创建和启动一个Maven项目：  
-创建一个名为
+
 
 
