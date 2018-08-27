@@ -41,6 +41,8 @@ Activiti应用是由一系列需要被结合到一起的组件组成的。使用
 分布式Log  Distributed Logging   
 - Spring Boot Kubernetes https://github.com/Activiti/example-runtime-bundle/blob/develop/src/main/resources/logback-spring.xml
 - json log https://github.com/logstash/logstash-logback-encoder  
-
+### 快速开始  
+- 创建和启动一个Maven项目：  
+创建一个名为
 
 
