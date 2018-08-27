@@ -77,10 +77,137 @@ public class OnboardingRequest {
 }
 ```  
 - 发布一个流程定义  
-我们准备在Activiti引擎中发布一个BPM流程逻辑.当前示例里输入数据,如果数据大于3,会执行用户自定义的流程在后台进行数据的交互.如果数据小于或者等于3会在后台输出简单的信息。Activiti服从BPMN2.0规范。示例文件可以可视化展示为下图：  
-![流程图](img/2.png)
+我们准备在Activiti引擎中发布一个BPM流程逻辑.当前示例里输入数据,如果数据大于3,会执行用户自定义的流程在后台进行数据的交互.如果数据小于或者等于3会在后台输出简单的信息。Activiti服从BPMN2.0规范。示例文件可以可视化展示为下图，具体xml文件在$mvnProject/src/main/resources/.  
+![流程图](img/2.png)  
+- 在$mvnProject/src/main/java/com/example/OnboardingRequest.java   
+```
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    //加载bpmn文件并发布到Activiti流程引擎中
+    Deployment deployment = repositoryService.createDeployment()
+        .addClasspathResource("onboarding.bpmn20.xml").deploy();
+    //打印流程信息可以看到确实加载到引擎中
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+        .deploymentId(deployment.getId()).singleResult();
+    System.out.println(
+        "Found process definition [" 
+            + processDefinition.getName() + "] with id [" 
+            + processDefinition.getId() + "]");
+``` 
+- 执行流程示例  修改Log4j日志等级为log4j.rootLogger=WARN, ACT  
 
+```
+   //开启onboarding流程
+   RuntimeService runtimeService = processEngine.getRuntimeService();
+   ProcessInstance processInstance = runtimeService
+   .startProcessInstanceByKey("onboarding");
+   System.out.println("Onboarding process started with process instance id ["
+       + processInstance.getProcessInstanceId()
+       + "] key [" + processInstance.getProcessDefinitionKey() + "]");
+    //导入Activiti的主要API 
+    TaskService taskService = processEngine.getTaskService();
+    FormService formService = processEngine.getFormService();
+    HistoryService historyService = processEngine.getHistoryService();
 
+    Scanner scanner = new Scanner(System.in);
+    while (processInstance != null && !processInstance.isEnded()) {
+      //从命名行获取符合管理员角色输入的参数值
+      List<Task> tasks = taskService.createTaskQuery()
+          .taskCandidateGroup("managers").list();
+      System.out.println("Active outstanding tasks: [" + tasks.size() + "]");
+      for (int i = 0; i < tasks.size(); i++) {
+        Task task = tasks.get(i);
+        System.out.println("Processing Task [" + task.getName() + "]");
+        Map<String, Object> variables = new HashMap<String, Object>();
+        FormData formData = formService.getTaskFormData(task.getId());
+        for (FormProperty formProperty : formData.getFormProperties()) {
+          //输入不同类型的参数值
+          if (StringFormType.class.isInstance(formProperty.getType())) {
+            System.out.println(formProperty.getName() + "?");
+            String value = scanner.nextLine();
+            variables.put(formProperty.getId(), value);
+          } else if (LongFormType.class.isInstance(formProperty.getType())) {
+            System.out.println(formProperty.getName() + "? (Must be a whole number)");
+            Long value = Long.valueOf(scanner.nextLine());
+            variables.put(formProperty.getId(), value);
+          } else if (DateFormType.class.isInstance(formProperty.getType())) {
+            System.out.println(formProperty.getName() + "? (Must be a date m/d/yy)");
+            DateFormat dateFormat = new SimpleDateFormat("m/d/yy");
+            Date value = dateFormat.parse(scanner.nextLine());
+            variables.put(formProperty.getId(), value);
+          } else {
+            System.out.println("<form type not supported>");
+          }
+        }
+        taskService.complete(task.getId(), variables);
+        //打印历史记录信息
+        HistoricActivityInstance endActivity = null;
+        List<HistoricActivityInstance> activities = 
+            historyService.createHistoricActivityInstanceQuery()
+            .processInstanceId(processInstance.getId()).finished()
+            .orderByHistoricActivityInstanceEndTime().asc()
+            .list();
+        for (HistoricActivityInstance activity : activities) {
+          if (activity.getActivityType().equals("startEvent")) {
+            System.out.println("BEGIN " + processDefinition.getName() 
+                + " [" + processInstance.getProcessDefinitionKey()
+                + "] " + activity.getStartTime());
+          }
+          if (activity.getActivityType().equals("endEvent")) {
+            // Handle edge case where end step happens so fast that the end step
+            // and previous step(s) are sorted the same. So, cache the end step 
+            //and display it last to represent the logical sequence.
+            endActivity = activity;
+          } else {
+            System.out.println("-- " + activity.getActivityName() 
+                + " [" + activity.getActivityId() + "] "
+                + activity.getDurationInMillis() + " ms");
+          }
+        }
+        if (endActivity != null) {
+          System.out.println("-- " + endActivity.getActivityName() 
+                + " [" + endActivity.getActivityId() + "] "
+                + endActivity.getDurationInMillis() + " ms");
+          System.out.println("COMPLETE " + processDefinition.getName() + " ["
+                + processInstance.getProcessDefinitionKey() + "] " 
+                + endActivity.getEndTime());
+        }
+      }
+      // Re-query the process instance, making sure the latest state is available
+      processInstance = runtimeService.createProcessInstanceQuery()
+          .processInstanceId(processInstance.getId()).singleResult();
+    }
+    scanner.close();
+```  
+- 在java中编写服务任务   
+可以在xml里写javascript脚本来处理服务,  也可以通过java类来处理  /src/main/java/com/example/AutomatedDataDelegate.java 
+    
+```
+//设置变量autoWelcomeTime为当前时间
+ Date now = new Date();
+ execution.setVariable("autoWelcomeTime", now);
+ System.out.println("Faux call to backend for [" 
+ + execution.getVariable("fullName") + "]");  
+```
+    
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+  <process id="onboarding" name="Onboarding" isExecutable="true">
+...
+    <scriptTask id="automatedIntro" name="Generic and Automated Data Entry" scriptFormat="javascript" activiti:autoStoreVariables="false">
+      <script><![CDATA[var dateAsString = new Date().toString();
+execution.setVariable("autoWelcomeTime", dateAsString);]]></script>
+    </scriptTask>
+...
+```  
+
+``` 
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+  <process id="onboarding" name="Onboarding" isExecutable="true">
+...
+   <serviceTask id="automatedIntro" name="Generic and Automated Data Entry" activiti:class="com.example.AutomatedDataDelegate"></serviceTask>
+```
 
 ### overview  
 activiti cloud 提供了支持整个平台的基本服务和仅限于BPM的服务，所有的服务之间可以进行解耦，你可以自由的重新整合或替代服务。  
