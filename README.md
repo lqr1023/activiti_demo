@@ -252,7 +252,19 @@ Activiti应用是由一系列需要被结合到一起的组件组成的。使用
 - Spring Boot Kubernetes https://github.com/Activiti/example-runtime-bundle/blob/develop/src/main/resources/logback-spring.xml
 - json log https://github.com/logstash/logstash-logback-encoder    
 ### 参考  
-- idea bpmn插件 https://www.cnblogs.com/kanyun/p/8079501.html
+- idea bpmn插件 https://www.cnblogs.com/kanyun/p/8079501.html   
+
+### 补充
+1. 连接数据库，可以直接在代码中写配置，也可以在classpath下添加activiti.cfg.xml进行配置
+> 数据库名称解释
+> - ACT_RE_*:RE代表 repository，所有以该前缀开头的表包含着静态信息，比如流程的定义和流程资源（图片，规则等）
+> - ACT_RU_*:RU代表 runtime,这些表里包含着运行时的流程实例,用户任务，变量和工作等。activiti在流程执行时保存这些数据，当流程结束时会删除这些记录。
+> - ACT_ID_*:ID代表 identity，这些表包含着身份信息，比如用户，组等
+> - ACT_HI_*:HI代表 history，这些表里包含着历史数据，比如执行过的流程实例,变量,任务等
+> - ACT_GE_*:general数据，用在多个场合在中。
+
+
+
 
 
 
