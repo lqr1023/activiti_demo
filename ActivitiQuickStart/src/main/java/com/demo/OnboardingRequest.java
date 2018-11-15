@@ -30,7 +30,7 @@ public class OnboardingRequest {
         ProcessEngineConfiguration cfg = new StandaloneProcessEngineConfiguration()
                 .setJdbcUrl("jdbc:mysql://localhost:3306/activiti?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC")
                 .setJdbcUsername("root")
-                .setJdbcPassword("lqr")
+                .setJdbcPassword("xxx")
                 .setJdbcDriver("com.mysql.cj.jdbc.Driver")
                 .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
         ProcessEngine processEngine = cfg.buildProcessEngine();
