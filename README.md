@@ -292,7 +292,7 @@ ManagementService通常在用Activiti编写用户应用时不需要使用。它�
 停/激活（delayed suspension/activation）等等。
 
 ### 其他资料
-https://www.cnblogs.com/hellowood23/p/5437909.html
+https://www.cnblogs.com/hellowood23/p/5437909.html      
 https://my.oschina.net/u/1762811/blog/2249536
 
 
