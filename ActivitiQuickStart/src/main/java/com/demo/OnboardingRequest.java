@@ -8,6 +8,7 @@ import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.form.DateFormType;
 import org.activiti.engine.impl.form.LongFormType;
 import org.activiti.engine.impl.form.StringFormType;
+import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
@@ -27,22 +28,21 @@ import java.text.ParseException;
 public class OnboardingRequest {
     public static void main(String[] args) {
         //连接mysql数据库
-        ProcessEngineConfiguration cfg = new StandaloneProcessEngineConfiguration()
-                .setJdbcUrl("jdbc:mysql://localhost:3306/activiti?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC")
-                .setJdbcUsername("root")
-                .setJdbcPassword("xxx")
-                .setJdbcDriver("com.mysql.cj.jdbc.Driver")
-                .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
-        ProcessEngine processEngine = cfg.buildProcessEngine();
+        // 引擎配置
+        ProcessEngineConfiguration pec=ProcessEngineConfiguration.createProcessEngineConfigurationFromResource("activiti.cfg.xml");
+        // 获取流程引擎对象
+        ProcessEngine processEngine=pec.buildProcessEngine();
+
         String pName = processEngine.getName();
         String ver = ProcessEngine.VERSION;
         System.out.println("ProcessEngine [" + pName + "] Version: [" + ver + "]");
-
+        //部署bpmn文件
         RepositoryService repositoryService = processEngine.getRepositoryService();
         Deployment deployment = repositoryService.createDeployment()
                 .addClasspathResource("onboarding.bpmn20.xml").deploy();
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
                 .deploymentId(deployment.getId()).singleResult();
+        //这里的name程序不会使用可以自定义任何名称 id是activiti自动生成的，格式为key:version 最多64个字节，如果报异常缩短key的字节数
         System.out.println(
                 "Found process definition ["
                         + processDefinition.getName() + "] with id ["
@@ -50,17 +50,23 @@ public class OnboardingRequest {
 
 
         RuntimeService runtimeService = processEngine.getRuntimeService();
+
+        //获取具体的流程实例 onboarding对应这个xml里的<process id="onboarding"...>
         ProcessInstance processInstance = runtimeService
                 .startProcessInstanceByKey("onboarding");
+
         System.out.println("Onboarding process started with process instance id ["
                 + processInstance.getProcessInstanceId()
                 + "] key [" + processInstance.getProcessDefinitionKey() + "]");
 
+
+        //获取service
         TaskService taskService = processEngine.getTaskService();
         FormService formService = processEngine.getFormService();
         HistoryService historyService = processEngine.getHistoryService();
 
         Scanner scanner = new Scanner(System.in);
+
         while (processInstance != null && !processInstance.isEnded()) {
             List<Task> tasks = taskService.createTaskQuery()
                     .taskCandidateGroup("managers").list();
@@ -94,6 +100,7 @@ public class OnboardingRequest {
                         System.out.println("<form type not supported>");
                     }
                 }
+                //任务流转
                 taskService.complete(task.getId(), variables);
 
                 HistoricActivityInstance endActivity = null;
@@ -134,7 +141,5 @@ public class OnboardingRequest {
                     .processInstanceId(processInstance.getId()).singleResult();
         }
         scanner.close();
-
-
     }
 }

@@ -17,6 +17,6 @@ public class AutomatedDataDelegate implements JavaDelegate {
     public void execute(DelegateExecution delegateExecution) {
         Date now = new Date();
         delegateExecution.setVariable("autoWelcomeTime",now);
-        System.out.println("Faux call to backend for [" + delegateExecution.getVariable("fullName") + "]");
+        System.out.println("Faux call to backend for [" + delegateExecution.getVariable("fullName") + ","+delegateExecution.getVariable("autoWelcomeTime")+"]");
     }
 }

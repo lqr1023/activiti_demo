@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:activiti="http://activiti.org/bpmn"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
     <process id="onboarding" name="Onboarding" isExecutable="true">
+        <!--activiti:initiator属性：把启动流程实例的操作人以变量名称“initiator”保存到数据库中。-->
         <startEvent id="startOnboarding" name="Start" activiti:initiator="initiator"></startEvent>
+        <!--activiti:assignee属性：此节点指定用户签收任务。 -->
+        <!--activiti:candidateGroups属性：此节点允许签收任务的组。-->
         <userTask id="enterOnboardingData" name="Enter Data" activiti:assignee="${initiator}" activiti:candidateGroups="managers">
             <extensionElements>
                 <activiti:formProperty id="fullName" name="Full Name" type="string"></activiti:formProperty>
@@ -18,11 +27,12 @@
         </userTask>
         <endEvent id="endOnboarding" name="End"></endEvent>
         <sequenceFlow id="sid-37A73ACA-2E23-400B-96F3-71F77738DAFA" sourceRef="automatedIntro" targetRef="endOnboarding"></sequenceFlow>
+        <!--当客户有这么一个需求：下一个任务我需要自动执行一些操作，并且这个节点不需要任何的人工干涉，也就是说这个节点是自动化的。那么，这个当前面一个经办人员把任务发送下去的时候，自然而然的下一个节点就会开始马上执行。这个时候。我们就需要使用Activiti工作流的ServiceTask任务-->
         <serviceTask id="automatedIntro" name="Generic and Automated Data Entry" activiti:class="com.demo.AutomatedDataDelegate"></serviceTask>
         <sequenceFlow id="automatedIntroPath" sourceRef="decision" targetRef="automatedIntro"></sequenceFlow>
         <sequenceFlow id="personalizedIntroPath" name="&gt;3" sourceRef="decision" targetRef="personalizedIntro">
             <conditionExpression xsi:type="tFormalExpression"><![CDATA[${yearsOfExperience > 3}]]></conditionExpression>
-        </sequenceFlow>
+    </sequenceFlow>
         <sequenceFlow id="sid-BA6F061B-47B6-428B-8CE6-739244B14BD6" sourceRef="personalizedIntro" targetRef="endOnboarding"></sequenceFlow>
     </process>
     <bpmndi:BPMNDiagram id="BPMNDiagram_onboarding">
